@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/sqs"
 )
 
@@ -25,20 +26,41 @@ func main() {
 		log.Fatalf("failed to create aws session: %v", err)
 	}
 
-	svc := sqs.New(sess)
+	sqsClient := sqs.New(sess)
+	dynamodbClient := dynamodb.New(sess)
 
 	ticker := time.NewTicker(3 * time.Second)
 	go func() {
 		for {
 			<-ticker.C
 
-			item := Message{
+			message := Message{
 				Id:          generateUUID(),
 				Description: "new message",
 				CreatedAt:   time.Now().Add(24 * time.Hour),
 			}
 
-			if err = sendMessage(svc, item); err != nil {
+			_, err = dynamodbClient.PutItem(
+				&dynamodb.PutItemInput{
+					TableName: aws.String("messages"),
+					Item: map[string]*dynamodb.AttributeValue{
+						"Id": {
+							S: aws.String(message.Id),
+						},
+						"Description": {
+							S: aws.String(message.Description),
+						},
+						"CreatedAt": {
+							S: aws.String(message.CreatedAt.Format(time.RFC3339)),
+						},
+					},
+				},
+			)
+			if err != nil {
+				log.Printf("failed to save message: %v", err)
+			}
+
+			if err = sendMessage(sqsClient, message); err != nil {
 				log.Printf("failed to send message: %v", err)
 			}
 		}
@@ -48,9 +70,9 @@ func main() {
 }
 
 type Message struct {
-	Id          string
-	Description string
-	CreatedAt   time.Time
+	Id          string    `json:"Id"`
+	Description string    `json:"Description"`
+	CreatedAt   time.Time `json:"CreatedAt"`
 }
 
 func generateUUID() string {

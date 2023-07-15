@@ -1,6 +1,7 @@
 name: localstack-action
 
 on: push
+
 jobs:
   terraform-apply:
     runs-on: ubuntu-latest
@@ -24,29 +25,31 @@ jobs:
         run: |
           terraform -chdir=tests init
           terraform -chdir=tests apply -auto-approve
-    check-terraform-linting:
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout Branch
-          uses: actions/checkout@v2
-        - name: asdf_install
-          uses: asdf-vm/actions/install@v1
-        - name: Check Terraform Linting
-          run: |
-            terraform fmt -check -recursive
-            result=$?;
-            if (( $result == 0 )); then
-              exit 0;
-            else
-              echo '::error::Terraform code was not formatted/linted.';
-              exit 1;
-            fi
-    terraform-validate:
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout Branch
-          uses: actions/checkout@v2
-        - name: Run Terraform Validate
-          run: |
-            terraform -chdir=tests init
-            terraform -chdir=tests validate        
+
+  check-terraform-linting:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Branch
+        uses: actions/checkout@v2
+      - name: asdf_install
+        uses: asdf-vm/actions/install@v1
+      - name: Check Terraform Linting
+        run: |
+          terraform fmt -check -recursive
+          result=$?;
+          if (( $result == 0 )); then
+            exit 0;
+          else
+            echo '::error::Terraform code was not formatted/linted.';
+            exit 1;
+          fi
+
+  terraform-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Branch
+        uses: actions/checkout@v2
+      - name: Run Terraform Validate
+        run: |
+          terraform -chdir=tests init
+          terraform -chdir=tests validate

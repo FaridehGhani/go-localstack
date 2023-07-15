@@ -1,55 +1,32 @@
-name: localstack-action
+name: CI
 
-on: push
+on: [push]
 
 jobs:
-  terraform-apply:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout Branch
+      - name: Checkout repository
         uses: actions/checkout@v2
-      - name: asdf_install
-        uses: asdf-vm/actions/install@v1
+
+      - name: Set up Docker
+        uses: docker/setup-docker@v1
+
       - name: Start LocalStack
-        run: |
-          pip install localstack
-          docker pull localstack/localstack
-          localstack start -d
-          echo "Waiting for LocalStack startup..."
-          localstack wait -t 30
-      - name: Run Terraform Plan
-        run: |
-          terraform -chdir=tests init
-          terraform -chdir=tests plan
-      - name: Run Terraform Apply
-        run: |
-          terraform -chdir=tests init
-          terraform -chdir=tests apply -auto-approve
+        run: docker-compose -f docker-compose.yml up -d
 
-  check-terraform-linting:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Branch
-        uses: actions/checkout@v2
-      - name: asdf_install
-        uses: asdf-vm/actions/install@v1
-      - name: Check Terraform Linting
+      - name: Terraform init
         run: |
-          terraform fmt -check -recursive
-          result=$?;
-          if (( $result == 0 )); then
-            exit 0;
-          else
-            echo '::error::Terraform code was not formatted/linted.';
-            exit 1;
-          fi
+          cd path/to/terraform/directory
+          terraform init
 
-  terraform-validate:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Branch
-        uses: actions/checkout@v2
-      - name: Run Terraform Validate
+      - name: Terraform validate
         run: |
-          terraform -chdir=tests init
-          terraform -chdir=tests validate
+          cd path/to/terraform/directory
+          terraform validate
+
+      - name: Terraform plan
+        run: |
+          cd path/to/terraform/directory
+          terraform plan

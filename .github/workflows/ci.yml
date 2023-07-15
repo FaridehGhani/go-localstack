@@ -10,25 +10,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-#      - name: Set up Docker
-#        run: |
-#          sudo apt-get update
-#          sudo apt-get install -y docker.io
-
       - name: Start LocalStack
         run: docker-compose -f docker-compose.yml up -d
 
       - name: Terraform init
         run: |
-          cd path/to/terraform/directory
           terraform init
 
       - name: Terraform validate
         run: |
-          cd path/to/terraform/directory
           terraform validate
 
       - name: Terraform plan
         run: |
-          cd path/to/terraform/directory
           terraform plan

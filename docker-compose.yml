@@ -18,6 +18,18 @@ services:
     ports:
       - "8001:8001"
     environment:
-      - DYNAMO_ENDPOINT=http://localstack:4566
+      DYNAMO_ENDPOINT: http://localstack:4566
     depends_on:
       - localstack
+
+  mysql:
+    platform: linux/x86_64
+    image: mysql:8.0.27
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: test
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: root

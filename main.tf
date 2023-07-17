@@ -13,12 +13,12 @@ provider "aws" {
 }
 
 resource "aws_sqs_queue" "my_queue" {
-  name                      = "my-queue"
+  name                      = var.sqs
   visibility_timeout_seconds = 30
 }
 
 resource "aws_dynamodb_table" "messages" {
-  name           = "messages"
+  name           = var.dynamodb
   read_capacity  = "20"
   write_capacity = "20"
   hash_key       = "Id"

@@ -16,7 +16,7 @@ func MysQL() (*sql.DB, func()) {
 	var cleanup func()
 
 	once.Do(func() {
-		db, err = sql.Open("mysql", "adjoe:adjoe@tcp(localhost:3306)/adjoe")
+		db, err = sql.Open("mysql", "root:root@tcp(localhost:3306)/test")
 		if err != nil {
 			log.Fatalf("error in openning mysql connection: err %v", err)
 		}

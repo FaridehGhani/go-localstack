@@ -5,26 +5,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/google/uuid"
-
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/sqs"
+	"github.com/google/uuid"
+
+	"github.com/FaridehGhani/go-localstack/infra/cloud"
 )
 
 func main() {
-	sess, err := session.NewSession(
-		&aws.Config{
-			Endpoint:    aws.String("http://localhost:4566"),
-			Region:      aws.String("us-east-1"),
-			Credentials: credentials.NewStaticCredentials("dummy", "dummy", ""),
-		},
-	)
-	if err != nil {
-		log.Fatalf("failed to create aws session: %v", err)
-	}
+	sess := cloud.NewAWS()
 
 	sqsClient := sqs.New(sess)
 	dynamodbClient := dynamodb.New(sess)
@@ -40,7 +30,7 @@ func main() {
 				CreatedAt:   time.Now().Add(24 * time.Hour),
 			}
 
-			_, err = dynamodbClient.PutItem(
+			_, err := dynamodbClient.PutItem(
 				&dynamodb.PutItemInput{
 					TableName: aws.String("messages"),
 					Item: map[string]*dynamodb.AttributeValue{
@@ -97,7 +87,7 @@ func sendMessage(svc *sqs.SQS, item Message) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("message sent with id %v", output.MessageId)
+	log.Printf("message sent with id %v", *output.MessageId)
 
 	return nil
 }

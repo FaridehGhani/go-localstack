@@ -6,22 +6,13 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
+
+	"github.com/FaridehGhani/go-localstack/infra/cloud"
 )
 
 func main() {
-	sess, err := session.NewSession(
-		&aws.Config{
-			Endpoint:    aws.String("http://localhost:4566"),
-			Region:      aws.String("us-east-1"),
-			Credentials: credentials.NewStaticCredentials("dummy", "dummy", ""),
-		},
-	)
-	if err != nil {
-		log.Fatalf("failed to create aws session: %v", err)
-	}
+	sess := cloud.NewAWS()
 
 	svc := sqs.New(sess)
 
@@ -30,7 +21,7 @@ func main() {
 	go func() {
 		defer wg.Done()
 		for {
-			if err = receiveMessages(svc); err != nil {
+			if err := receiveMessages(svc); err != nil {
 				log.Printf("failed to receive message: %v", err)
 			}
 
